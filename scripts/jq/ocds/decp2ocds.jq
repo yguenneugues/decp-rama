@@ -15,18 +15,10 @@ def getBuyer:
     . | (if (."_type" == "Marché") then
     .acheteur else .autoriteConcedante end)
     ;
-def getSupplier(lastModif):
+def getSupplier:
     . | (if (."_type" == "Marché") then
-    (lastModif.titulaires // .titulaires) else .concessionnaires end) |
+    .titulaires else .concessionnaires end) |
     if (. == null) then empty else .[] end
-    ;
-def chooseReleaseTag(lastModif):
-
-    if (lastModif|type == "object")|not then ["award"] else
-        [] |
-        if (lastModif.titulaires | type == "array") then . + ["awardUpdate"] else . end
-        | if (lastModif.montant | type == "number") or (lastModif.dureeMois | type == "number") or (lastModif.dureeMois == null) and (lastModif.montant == null) then . + ["contractAmendment"] else . end
-    end
     ;
 
 def formatDate(date):
@@ -35,10 +27,8 @@ def formatDate(date):
     else null end
     ;
 
-def getReleaseDate(lastModif):
-    if (lastModif|type == "object")|not then formatDate(.datePublicationDonnees)
-    else formatDate(lastModif.datePublicationDonneesModification)
-    end
+def getReleaseDate:
+        (formatDate(.datePublicationDonnees) // $datetime)
     ;
 def getDurationInDays(durationInMonths):
     durationInMonths * 30.5 | floor
@@ -51,17 +41,16 @@ def getReleaseIdMeta:
     then
     {
         "id": (.uid | rtrimstr($suffix)),
-        "seq": $suffix,
+        "seq": "00",
         "nbModif": (.modifications |length)
     }
     else
     {
         "id": .uid,
-        "seq": (if (.modifications |length) < 10 then  ("0"  + (.modifications |length | tostring)) else (.modifications | length | tostring) end),
+        "seq": "00",
         "nbModif": (.modifications |length)
     } end
     ;
-
 {
 	"version": "1.1",
 	"uri": $packageUri,
@@ -75,12 +64,10 @@ def getReleaseIdMeta:
 	"publicationPolicy": $datasetUrl,
 	"releases": [
         .marches[] |
-
         if (._type == "Marché") then
-        .modifications as $modifications |
         getReleaseIdMeta as $releaseIdMeta |
+        getDurationInDays(.dureeMois) as $durationInDays |
         ($releaseIdMeta.id + "-" + $releaseIdMeta.seq) as $releaseId |
-        ($modifications | last) as $lastModif |
         ($ocidPrefix + "-" + $releaseIdMeta.id) as $ocid |
         [{
         "id": ($ocid + "-item-1"),
@@ -96,9 +83,9 @@ def getReleaseIdMeta:
         "ocid": $ocid,
 		"id": $releaseId,
         "decpUID": .uid,
-		"date": getReleaseDate($lastModif) // $datetime,
+		"date": getReleaseDate,
         "language": "fr",
-		"tag": chooseReleaseTag($lastModif),
+		"tag": ["award"],
 		"initiationType": "tender",
 		"parties":
         [
@@ -113,7 +100,7 @@ def getReleaseIdMeta:
                         "legalName": .nom
                     }})
                     ,
-          (getSupplier($lastModif) | {
+          (getSupplier | {
                   "name": .denominationSociale,
                   "id": .id,
                   "roles": ["supplier"],
@@ -137,14 +124,14 @@ def getReleaseIdMeta:
 				"amount": .montant,
 				"currency": "EUR"
 			},
-			"suppliers": [(getSupplier($lastModif) | {
+			"suppliers": [(getSupplier | {
                   "name": .denominationSociale,
                   "id": .id
                   })
               ],
 			"items": $items,
 			"contractPeriod": {
-				"durationInDays": getDurationInDays(.dureeMois)
+				"durationInDays": $durationInDays
 			}
 			}],
             "contracts":[
@@ -152,30 +139,19 @@ def getReleaseIdMeta:
                     "id": ($ocid + "-contract-1"),
                     "awardID": ($ocid + "-award-1"),
                     "value": {
-                        "amount": ($lastModif.montant // .montant),
+                        "amount": .montant,
                         "currency": "EUR"
                     },
                     "description": .objet,
-                    "amendments": (if ($releaseIdMeta.nbModif > 0) then
-                        [ {
-                            "id": ($ocid + "-amendment-" + ($releaseIdMeta.seq | tonumber | tostring)),
-                            "date": (formatDate($lastModif.dateNotificationModification)),
-                            "rationale":  ($lastModif.objetModification),
-                            "amendsReleaseID": ($releaseIdMeta.id + "-" + ($releaseIdMeta.seq | tonumber | . - 1 |
-                            tostring | if length < 2 then "0" + . else . end)),
-                            "releaseID": $releaseId
-                            } ]
-                        else null end),
                     "period":   {
-                        "durationInDays": getDurationInDays($lastModif.dureeMois //
-                        .dureeMois)
+                        "durationInDays": $durationInDays
                     },
-                    "status": (if $releaseIdMeta.nbModif > 0 then "active" else "pending" end),
+                    "status": "pending",
                     "items": $items
                 }
             ]
 		} else null end
-    ],
+    ]
 }
 # Added to remove all null properties from the resulting tree
 | walk(
