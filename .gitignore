@@ -1,5 +1,5 @@
 sources/*
 !sources/metadata.json
 json
-./*.json
+/*.json
 flattened
