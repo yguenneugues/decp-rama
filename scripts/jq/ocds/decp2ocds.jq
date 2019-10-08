@@ -17,7 +17,7 @@ def getBuyer:
     ;
 def getSupplier:
     . | (if (."_type" == "Marché") then
-    .titulaires else .concessionnaires end) |
+    (.titulaires // [] | unique_by(.id)) else (.concessionnaires // [] | unique_by(.id)) end) |
     if (. == null) then empty else .[] end
     ;
 
