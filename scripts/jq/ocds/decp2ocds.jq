@@ -48,43 +48,43 @@ def getReleaseIdMeta:
         "nbModif": (.modifications |length)
     } end
     ;
-{
-	"version": "1.1",
-	"uri": $packageUri,
-	"publishedDate": $datetime,
-	"publisher": {
-		"name": "Secrétariat Général du Gouvernement",
-		"scheme": "FR-RCS",
-		"uid": "12000101100010"
-	},
-	"license": "https://www.etalab.gouv.fr/licence-ouverte-open-licence",
-	"publicationPolicy": $datasetUrl,
-	"releases": [
-        .marches[] |
-        if (._type == "Marché") then
-        getReleaseIdMeta as $releaseIdMeta |
-        getDurationInDays(.dureeMois) as $durationInDays |
-        ($releaseIdMeta.id + "-" + $releaseIdMeta.seq) as $releaseId |
-        ($ocidPrefix + "-" + $releaseIdMeta.id) as $ocid |
-        [{
-        "id": ($ocid + "-item-1"),
-        "description": .objet,
-        "classification":
-        (if .codeCPV != null then {
-            "scheme": "CPV",
-            "id": .codeCPV
-        } else empty
-        end)
-    }] as $items |
+
+def makeRelease(marche):
+if marche == null then
+    .
+else
+    .value as $modification |
+    .key as $key |
+    marche | .
+end |
+
+    # Defining variables
+    if (._type == "Marché") then
+    getReleaseIdMeta as $releaseIdMeta |
+
+    getDurationInDays(.dureeMois) as $durationInDays |
+    ($releaseIdMeta.id + "-" + $releaseIdMeta.seq) as $releaseId |
+    ($ocidPrefix + "-" + $releaseIdMeta.id) as $ocid |
+    [{
+    "id": ($ocid + "-item-1"),
+    "description": .objet,
+    "classification":
+    (if .codeCPV != null then {
+        "scheme": "CPV",
+        "id": .codeCPV
+    } else empty
+    end)
+}] as $items |
+
     {
         "ocid": $ocid,
-		"id": $releaseId,
+        "id": $releaseId,
         "decpUID": .uid,
-		"date": getReleaseDate,
+        "date": getReleaseDate,
         "language": "fr",
-		"tag": ["award"],
-		"initiationType": "tender",
-		"parties":
+        "tag": ["award"],
+        "initiationType": "tender",
+        "parties":
         [
             (getBuyer |
             {
@@ -108,29 +108,29 @@ def getReleaseIdMeta:
                   }
               })
               ],
-		"buyer": getBuyer | {
-			"name": .nom,
-			"id": .id
-		},
-		"awards": [{
-			"id": ($ocid + "-award-1"),
-			"description": .objet,
-			"status": "active",
-			"date": formatDate(.dateNotification),
-			"value": {
-				"amount": .montant,
-				"currency": "EUR"
-			},
-			"suppliers": [(getSupplier | {
+        "buyer": getBuyer | {
+            "name": .nom,
+            "id": .id
+        },
+        "awards": [{
+            "id": ($ocid + "-award-1"),
+            "description": .objet,
+            "status": "active",
+            "date": formatDate(.dateNotification),
+            "value": {
+                "amount": .montant,
+                "currency": "EUR"
+            },
+            "suppliers": [(getSupplier | {
                   "name": .denominationSociale,
                   "id": .id
                   })
               ],
-			"items": $items,
-			"contractPeriod": {
-				"durationInDays": $durationInDays
-			}
-			}],
+            "items": $items,
+            "contractPeriod": {
+                "durationInDays": $durationInDays
+            }
+            }],
             "contracts":[
                 {
                     "id": ($ocid + "-contract-1"),
@@ -143,11 +143,38 @@ def getReleaseIdMeta:
                     "period":   {
                         "durationInDays": $durationInDays
                     },
-                    "status": "pending",
+                    "status": "active",
                     "items": $items
                 }
             ]
-		} else null end
+        }  else null end
+
+    ;
+
+{
+	"version": "1.1",
+	"uri": $packageUri,
+	"publishedDate": $datetime,
+	"publisher": {
+		"name": "Secrétariat Général du Gouvernement français",
+		"scheme": "FR-RCS",
+		"uid": "12000101100010"
+	},
+	"license": "https://www.etalab.gouv.fr/licence-ouverte-open-licence",
+	"publicationPolicy": $datasetUrl,
+	"releases": [
+        .marches[] |
+        . as $marche |
+
+        # Process modifications
+        # (if (.modifications | length) > 0 then
+        # (.modifications| to_entries | .[] | makeModification($marche)
+        #
+        # ) else
+        # null end),
+
+        # Process initial data
+        makeRelease(null)
     ]
 }
 # Added to remove all null properties from the resulting tree
