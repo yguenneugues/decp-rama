@@ -35,10 +35,7 @@ def getDurationInDays(durationInMonths):
     ;
 def getReleaseIdMeta:
     (.uid | match("..$") | .string) as $suffix |
-    if
-    ((.uid | type) == "string")
-    and ($suffix | test("\\d\\d")) and ($suffix | tonumber) == (.modifications |length)
-    then
+    if ((.uid | type) == "string") and ($suffix | test("\\d\\d")) and ($suffix | tonumber) == (.modifications |length) then
     {
         "id": (.uid | rtrimstr($suffix)),
         "seq": "00",
