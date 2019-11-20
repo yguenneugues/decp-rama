@@ -82,7 +82,7 @@ end |
         "decpUID": .uid,
         "date": getReleaseDate,
         "language": "fr",
-        "tag": ["award"],
+        "tag": ["award","contract"],
         "initiationType": "tender",
         "parties":
         [
