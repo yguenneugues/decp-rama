@@ -19,7 +19,7 @@ if [[ ! -z $4 ]]
 then
     # Télécharge les dernières données si demandé
     rm json/decp.json
-    curl https://www.data.gouv.fr/fr/datasets/r/16962018-5c31-4296-9454-5998585496d2 -o json/decp.json
+    curl -L https://www.data.gouv.fr/fr/datasets/r/16962018-5c31-4296-9454-5998585496d2 -o json/decp.json
 
     # wget json/marches-fictifs-exclus.json
     # wget json/marches-inexploitables-exclus.json
