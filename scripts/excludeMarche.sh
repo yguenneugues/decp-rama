@@ -34,14 +34,14 @@ case "$3" in
     ;;
 esac
 
-count=`jq '. | length' $fichier`
+count=`jq '.marches | length' $fichier`
 echo "Avant : $count marchés dans $fichier"
 
 # Récupère les données du marché grâce à son UID
 marche=`jq --arg uid "$uid" '.marches[] | select(.uid == $uid)' json/decp.json`
 
-jq --argjson marche "$marche" --arg raison "$raison"  '. + [$marche + {"raison-exclusion": ($raison)}]' $fichier > $fichier.tmp
+jq --argjson marche "$marche" --arg raison "$raison"  '.marches + [$marche + {"raison-exclusion": ($raison)}]' $fichier > $fichier.tmp
 mv $fichier.tmp $fichier
 
-count=`jq '. | length' $fichier`
+count=`jq '.marches | length' $fichier`
 echo "Après : $count marchés dans $fichier"
