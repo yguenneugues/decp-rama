@@ -74,7 +74,7 @@ workflows:
               type: approval # <<< This key-value pair will set your workflow to a status of "On Hold"
           - get_data:
               requires:
-                - hold
+                - hold # Will only be validated if approved so get_data won't run until then
           - process
 
     daily:
