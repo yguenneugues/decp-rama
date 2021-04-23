@@ -70,11 +70,11 @@ workflows:
 
     dev:
       jobs:
-          - hold: # <<< A job that will require manual approval in the CircleCI web application.
-              type: approval # <<< This key-value pair will set your workflow to a status of "On Hold"
-          - get_data:
-              requires:
-                - hold # Will only be validated if approved so get_data won't run until then
+          # - hold: # <<< A job that will require manual approval in the CircleCI web application.
+          #     type: approval # <<< This key-value pair will set your workflow to a status of "On Hold"
+          # - get_data:
+          #     requires:
+          #       - hold # Will only be validated if approved so get_data won't run until then
           - process
 
     daily:
