@@ -62,7 +62,7 @@ workflows:
         - get_data
       triggers:
         - schedule:
-            cron: 0 1 * * 2,3,4,5,6
+            cron: 0 1 * * 1-6
             filters:
               branches:
                 only:
@@ -70,11 +70,11 @@ workflows:
 
     dev:
       jobs:
-          # - hold: # <<< A job that will require manual approval in the CircleCI web application.
-          #     type: approval # <<< This key-value pair will set your workflow to a status of "On Hold"
-          # - get_data:
-          #     requires:
-          #       - hold # Will only be validated if approved so get_data won't run until then
+          - hold: # <<< A job that will require manual approval in the CircleCI web application.
+              type: approval # <<< This key-value pair will set your workflow to a status of "On Hold"
+          - get_data:
+              requires:
+                - hold # Will only be validated if approved so get_data won't run until then
           - process
 
     daily:
@@ -87,7 +87,7 @@ workflows:
               - process
       triggers:
         - schedule:
-            cron: 0 3 * * 2,3,4,5,6
+            cron: 0 3 * * 2-6
             filters:
               branches:
                 only:
