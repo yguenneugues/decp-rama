@@ -79,13 +79,13 @@ workflows:
           #     requires:
           #       - hold # Will only be validated if approved so get_data won't run until then
           - process
-          - hold: # <<< A job that will require manual approval in the CircleCI web application.
-              type: approval # <<< This key-value pair will set your workflow to a status of "On Hold"
-          - publish:
-              context:
-                - decp-rama-context
-              requires:
-                - hold
+          # - hold: # <<< A job that will require manual approval in the CircleCI web application.
+          #     type: approval # <<< This key-value pair will set your workflow to a status of "On Hold"
+          # - publish:
+          #     context:
+          #       - decp-rama-context
+          #     requires:
+          #       - hold
 
     daily:
       jobs:
