@@ -41,6 +41,7 @@ if [[ $nbNewMarches -lt 2000 ]]
 
 # Méthode classique si peu de nouveaux marchés
 then
+<<<<<<< Updated upstream
 
     echo '{"marches":[' > temp.json
 
@@ -77,6 +78,6 @@ echo "Nombre de marchés dans le fichier des nouveaux marchés :"
 jq '.marches | length' temp.json
 
 date=`date "+%F"`
-jq . temp.json > decp_$date.json
+jq . temp.json > results/decp_$date.json
 
 # rm oldMarchesNoDuplicates newMarchesNoDuplicates oldMarchesRaw newMarchesRaw todayMarches temp.json
