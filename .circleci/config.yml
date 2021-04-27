@@ -23,7 +23,6 @@ jobs:
         steps:
             - checkout
             - run: date +%F > date
-            - run: export DATE=$(cat date) >> $BASH_ENV
             - restore_cache:
                 keys:
                   - data-in-{{ .Branch }}-{{ checksum "sources/metadata.json" }}-{{ checksum "date" }}

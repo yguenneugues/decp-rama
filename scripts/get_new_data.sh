@@ -41,7 +41,6 @@ if [[ $nbNewMarches -lt 2000 ]]
 
 # Méthode classique si peu de nouveaux marchés
 then
-<<<<<<< Updated upstream
 
     echo '{"marches":[' > temp.json
 
