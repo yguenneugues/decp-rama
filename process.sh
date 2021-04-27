@@ -91,7 +91,7 @@ case $source in
           echo ""
           echo "## Conversion du JSON du jour en XML..."
           scripts/jsonDECP2xmlDECP.sh results/decp_$date.json > results/decp_$date.xml
-          ls -lh decp_$date.xml
+          ls -lh results/decp_$date.xml
 
           echo ""
           echo "## Conversion du JSON agrégé au format OCDS JSON..."
