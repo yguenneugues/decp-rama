@@ -1,5 +1,11 @@
 ---
-version: 2
+version: 2.1
+
+parameters:
+  rollback_job:
+      type: boolean
+      default: false
+
 jobs:
     get_data:
       docker:
@@ -31,10 +37,11 @@ jobs:
                 name: Traitement des données
                 no_output_timeout: 6h
                 command: |
-                     ./process.sh all fix only
-                     ./process.sh all convert only
-                     ./process.sh all package only
-                     ./process.sh all package nothing # traitement final pour regrouper toutes les données
+                     # ./process.sh all fix only
+                     # ./process.sh all convert only
+                     # ./process.sh all package only
+                     # ./process.sh all package nothing # traitement final pour regrouper toutes les données
+                     ls
             - save_cache:
                 key: data-out-{{ .Branch }}-{{ checksum "date" }}
                 paths:
@@ -57,7 +64,32 @@ jobs:
         - run:
             name: Publication des données sur (next.)data.gouv.fr
             command: |
-                ./publish-decp.sh
+                ls -la results
+                cat date
+                exit 1
+                # ./publish-decp.sh
+        - run:
+            name: run rollback job
+            command: |
+                curl -X POST 'https://circleci.com/api/v2/project/github/139bercy/decp-rama/pipeline' -H 'Content-Type: application/json' -u "${CIRCLE_TOKEN}:" -d '{"parameters": {"rollback_job": true}}'
+            when: on_fail
+
+    rollback_publish:
+      docker:
+        - image: 139bercy/decp-rama
+      steps:
+        - checkout
+        - run: date -d '-1 day' +%F > date
+        - restore_cache:
+            keys:
+              - data-out-{{ .Branch }}-{{ checksum "date" }}
+        - run:
+            name: Publication des données sur (next.)data.gouv.fr
+            command: |
+                ls results
+                cat date
+                # date=$(date -d '-1 day' +%F) ./publish-decp.sh
+
 workflows:
     version: 2
     data:
@@ -65,7 +97,7 @@ workflows:
         - get_data
       triggers:
         - schedule:
-            cron: 0 1 * * 2,3,4,5,6
+            cron: 0 1 * * 1,2,3,4,5,6 # d'après la doc circle ci, 1-6 n'est pas supporté (même si cela semble avoir marché)
             filters:
               branches:
                 only:
@@ -79,13 +111,13 @@ workflows:
           #     requires:
           #       - hold # Will only be validated if approved so get_data won't run until then
           - process
-          # - hold: # <<< A job that will require manual approval in the CircleCI web application.
-          #     type: approval # <<< This key-value pair will set your workflow to a status of "On Hold"
-          # - publish:
-          #     context:
-          #       - decp-rama-context
-          #     requires:
-          #       - hold
+          - hold: # <<< A job that will require manual approval in the CircleCI web application.
+              type: approval # <<< This key-value pair will set your workflow to a status of "On Hold"
+          - publish:
+              context:
+                - decp-rama-context
+              requires:
+                - hold
 
     daily:
       jobs:
@@ -102,3 +134,10 @@ workflows:
               branches:
                 only:
                   - master
+
+    rollback_publish:
+      when: << pipeline.parameters.rollback_job >>
+      jobs:
+        - rollback_publish:
+            context:
+              - decp-rama-context
