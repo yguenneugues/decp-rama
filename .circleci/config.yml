@@ -67,7 +67,7 @@ jobs:
         - run:
             name: run rollback job
             command: |
-                curl -X POST 'https://circleci.com/api/v2/project/github/139bercy/decp-rama/pipeline' -H 'Content-Type: application/json' -u "${CIRCLE_TOKEN}:" -d '{"parameters": {"rollback_job": true}}'
+                curl -X POST 'https://circleci.com/api/v2/project/gh/139bercy/decp-rama/pipeline' -H 'circle-token: '${CIRCLE_TOKEN} --header 'content-type: application/json'   --data '{"branch":"rollback-job", "parameters":{"rollback_job": true}}'
             when: on_fail
 
     rollback_publish:
@@ -78,7 +78,7 @@ jobs:
         - run: date -d '-1 day' +%F > date
         - restore_cache:
             keys:
-              - data-out-{{ .Branch }}-{{ checksum "date" }}
+              - data-out-master-{{ checksum "date" }}
         - run:
             name: Publication des données sur (next.)data.gouv.fr
             command: |
@@ -98,7 +98,8 @@ workflows:
                   - master
 
     dev:
-      when: << pipeline.parameters.rollback_job >>
+      when:
+        not: << pipeline.parameters.rollback_job >>
       jobs:
           # - hold: # <<< A job that will require manual approval in the CircleCI web application.
           #     type: approval # <<< This key-value pair will set your workflow to a status of "On Hold"

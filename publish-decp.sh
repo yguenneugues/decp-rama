@@ -14,7 +14,7 @@ set -e
 
 case ${CIRCLE_BRANCH} in
     # La publication n'est appliquée que sur la branche master.
-    master)
+    master | rollback-job)
 
     export api="https://www.data.gouv.fr/api/1"
     export dataset_id="5cd57bf68b4c4179299eb0e9"
