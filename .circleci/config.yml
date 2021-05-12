@@ -67,7 +67,7 @@ jobs:
         - run:
             name: run rollback job
             command: |
-                curl -X POST 'https://circleci.com/api/v2/project/gh/139bercy/decp-rama/pipeline' -H 'circle-token: '${CIRCLE_TOKEN} --header 'content-type: application/json'   --data '{"branch":"rollback-job", "parameters":{"rollback_job": true}}'
+                curl -X POST 'https://circleci.com/api/v2/project/gh/139bercy/decp-rama/pipeline' -H 'circle-token: '${CIRCLE_TOKEN} -H 'content-type: application/json' -d '{"branch":"master", "parameters":{"rollback_job": true}}'
             when: on_fail
 
     rollback_publish:
